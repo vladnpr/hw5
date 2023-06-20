@@ -18,15 +18,7 @@ const emptyField = "_"
 func main() {
 	resultsBoardInit()
 	switchPlayer()
-	for {
-		gameBoardInit()
-		fmt.Println("\n\n НОВА ГРА \n ")
-		run()
-		if !restart() {
-			fmt.Println("\n\n Нехай щастить!!!")
-			break
-		}
-	}
+	run()
 }
 
 func restart() bool {
@@ -54,37 +46,47 @@ func run() {
 	var y uint
 
 	for {
-		displayGameBoard()
-		if !gameBoardIsPlayable() {
-			fmt.Println("!!!НІЧИЯ!!!!")
-			addDraw()
-			displayResults()
-			break
-		}
+		gameBoardInit()
+		fmt.Println("\n\n НОВА ГРА \n ")
 
-		fmt.Printf("Player %s зробіть хід (наприклад, 0 1): ", currentPlayerSymbol)
-		_, err := fmt.Scanln(&x, &y)
-
-		if err != nil {
-			fmt.Printf("error: %s", err.Error())
-		}
-
-		if coordinatesIsValid(x, y) {
-			gameBoard[x][y] = currentPlayerSymbol
-			if isWin() {
-				clearDisplay()
-				fmt.Printf("!!!Перемога за гравцем %s!!!", currentPlayerSymbol)
-				addWin()
-				displayGameBoard()
+		for {
+			displayGameBoard()
+			if !gameBoardIsPlayable() {
+				fmt.Println("!!!НІЧИЯ!!!!")
+				addDraw()
 				displayResults()
 				break
-			} else {
-				switchPlayer()
-				clearDisplay()
 			}
-		} else {
-			clearDisplay()
-			fmt.Println("Неправильні координати. Спробуйте ще раз.")
+
+			fmt.Printf("Player %s зробіть хід (наприклад, 0 1): ", currentPlayerSymbol)
+			_, err := fmt.Scanln(&x, &y)
+
+			if err != nil {
+				fmt.Printf("error: %s", err.Error())
+			}
+
+			if coordinatesIsValid(x, y) {
+				gameBoard[x][y] = currentPlayerSymbol
+				if isWin() {
+					clearDisplay()
+					fmt.Printf("!!!Перемога за гравцем %s!!!", currentPlayerSymbol)
+					addWin()
+					displayGameBoard()
+					displayResults()
+					break
+				} else {
+					switchPlayer()
+					clearDisplay()
+				}
+			} else {
+				clearDisplay()
+				fmt.Println("Неправильні координати. Спробуйте ще раз.")
+			}
+		}
+
+		if !restart() {
+			fmt.Println("\n\n Нехай щастить!!!")
+			break
 		}
 	}
 }
