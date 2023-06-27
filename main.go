@@ -6,22 +6,32 @@ import (
 	"os/exec"
 )
 
-var gameBoard [3][3]string
-var currentPlayerSymbol string
-var resultsBoard map[string]int
-
-const player1 = "X"
-const player2 = "O"
-const draw = "НІЧИЯ"
-const emptyField = "_"
-
-func main() {
-	resultsBoardInit()
-	switchPlayer()
-	run()
+type Game struct {
+	gameBoard           [3][3]string
+	currentPlayerSymbol string
+	resultsBoard        map[string]int
+	player1             string
+	player2             string
+	draw                string
+	emptyField          string
 }
 
-func restart() bool {
+func main() {
+	game := Game{
+		gameBoard:           [3][3]string{},
+		currentPlayerSymbol: "X",
+		resultsBoard:        map[string]int{},
+		player1:             "X",
+		player2:             "O",
+		draw:                "НІЧИЯ",
+		emptyField:          "_",
+	}
+	game.resultsBoardInit()
+	game.switchPlayer()
+	game.run()
+}
+
+func (g *Game) restart() bool {
 	var choice int
 	var result bool
 	fmt.Println("\n\n Якщо бажаєте зіграти ще натисніть - 1 \n Для завершення натисніть - 0")
@@ -35,90 +45,90 @@ func restart() bool {
 		result = true
 	} else if choice != 0 {
 		fmt.Println("Неправильний вибір")
-		restart()
+		g.restart()
 	}
 
 	return result
 }
 
-func run() {
+func (g *Game) run() {
 	var x uint
 	var y uint
 
 	for {
-		gameBoardInit()
+		g.gameBoardInit()
 		fmt.Println("\n\n НОВА ГРА \n ")
 
 		for {
-			displayGameBoard()
-			if !gameBoardIsPlayable() {
+			g.displayGameBoard()
+			if !g.gameBoardIsPlayable() {
 				fmt.Println("!!!НІЧИЯ!!!!")
-				addDraw()
-				displayResults()
+				g.addDraw()
+				g.displayResults()
 				break
 			}
 
-			fmt.Printf("Player %s зробіть хід (наприклад, 0 1): ", currentPlayerSymbol)
+			fmt.Printf("Player %s зробіть хід (наприклад, 0 1): ", g.currentPlayerSymbol)
 			_, err := fmt.Scanln(&x, &y)
 
 			if err != nil {
 				fmt.Printf("error: %s", err.Error())
 			}
 
-			if coordinatesIsValid(x, y) {
-				gameBoard[x][y] = currentPlayerSymbol
-				if isWin() {
-					clearDisplay()
-					fmt.Printf("!!!Перемога за гравцем %s!!!", currentPlayerSymbol)
-					addWin()
-					displayGameBoard()
-					displayResults()
+			if g.coordinatesIsValid(x, y) {
+				g.gameBoard[x][y] = g.currentPlayerSymbol
+				if g.isWin() {
+					g.clearDisplay()
+					fmt.Printf("!!!Перемога за гравцем %s!!!", g.currentPlayerSymbol)
+					g.addWin()
+					g.displayGameBoard()
+					g.displayResults()
 					break
 				} else {
-					switchPlayer()
-					clearDisplay()
+					g.switchPlayer()
+					g.clearDisplay()
 				}
 			} else {
-				clearDisplay()
+				g.clearDisplay()
 				fmt.Println("Неправильні координати. Спробуйте ще раз.")
 			}
 		}
 
-		if !restart() {
+		if !g.restart() {
 			fmt.Println("\n\n Нехай щастить!!!")
 			break
 		}
 	}
 }
 
-func isWin() bool {
+func (g *Game) isWin() bool {
 	var win bool
 
-	for i := 0; i < len(gameBoard); i++ {
-		if gameBoard[i][0] != emptyField && gameBoard[i][0] == gameBoard[i][1] && gameBoard[i][0] == gameBoard[i][2] {
+	for i := 0; i < len(g.gameBoard); i++ {
+		if g.gameBoard[i][0] != g.emptyField && g.gameBoard[i][0] == g.gameBoard[i][1] && g.gameBoard[i][0] == g.gameBoard[i][2] {
 			win = true
 		}
-		if gameBoard[0][i] != emptyField && gameBoard[0][i] == gameBoard[1][i] && gameBoard[0][i] == gameBoard[2][i] {
+		if g.gameBoard[0][i] != g.emptyField && g.gameBoard[0][i] == g.gameBoard[1][i] && g.gameBoard[0][i] == g.gameBoard[2][i] {
 			win = true
 		}
 	}
 
-	if gameBoard[0][0] != emptyField && gameBoard[0][0] == gameBoard[1][1] && gameBoard[0][0] == gameBoard[2][2] {
+	if g.gameBoard[0][0] != g.emptyField && g.gameBoard[0][0] == g.gameBoard[1][1] && g.gameBoard[0][0] == g.gameBoard[2][2] {
 		win = true
 	}
-	if gameBoard[2][0] != emptyField && gameBoard[2][0] == gameBoard[1][1] && gameBoard[2][0] == gameBoard[0][2] {
+	if g.gameBoard[2][0] != g.emptyField && g.gameBoard[2][0] == g.gameBoard[1][1] && g.gameBoard[2][0] == g.gameBoard[0][2] {
 		win = true
 	}
 
 	return win
 }
 
-func gameBoardIsPlayable() bool {
+func (g *Game) gameBoardIsPlayable() bool {
 	var isPlayable bool
 
-	for _, v := range gameBoard {
+	for _, v := range g.gameBoard {
 		for _, j := range v {
-			if j == emptyField {
+			if j == g.emptyField {
 				isPlayable = true
 				break
 			}
@@ -128,41 +138,41 @@ func gameBoardIsPlayable() bool {
 	return isPlayable
 }
 
-func switchPlayer() {
+func (g *Game) switchPlayer() {
 
-	if currentPlayerSymbol == player1 {
-		currentPlayerSymbol = player2
-	} else if currentPlayerSymbol == player2 {
-		currentPlayerSymbol = player1
+	if g.currentPlayerSymbol == g.player1 {
+		g.currentPlayerSymbol = g.player2
+	} else if g.currentPlayerSymbol == g.player2 {
+		g.currentPlayerSymbol = g.player1
 	} else {
-		currentPlayerSymbol = player1
+		g.currentPlayerSymbol = g.player1
 	}
 }
 
-func coordinatesIsValid(x uint, y uint) bool {
+func (g *Game) coordinatesIsValid(x uint, y uint) bool {
 	var check bool
 
-	if (x < 3 && y < 3) && gameBoard[x][y] == emptyField {
+	if (x < 3 && y < 3) && g.gameBoard[x][y] == g.emptyField {
 		check = true
 	}
 
 	return check
 }
 
-func gameBoardInit() {
-	for i := 0; i < len(gameBoard); i++ {
-		gameBoard[i] = [3]string{emptyField, emptyField, emptyField}
+func (g *Game) gameBoardInit() {
+	for i := 0; i < len(g.gameBoard); i++ {
+		g.gameBoard[i] = [3]string{g.emptyField, g.emptyField, g.emptyField}
 	}
 }
 
-func displayGameBoard() {
+func (g *Game) displayGameBoard() {
 	fmt.Println("   0 1 2")
-	for i, val := range gameBoard {
+	for i, val := range g.gameBoard {
 		fmt.Println(i, val)
 	}
 }
 
-func clearDisplay() {
+func (g *Game) clearDisplay() {
 	cmd := exec.Command("clear")
 	cmd.Stdout = os.Stdout
 	err := cmd.Run()
@@ -172,20 +182,20 @@ func clearDisplay() {
 	}
 }
 
-func resultsBoardInit() {
-	resultsBoard = map[string]int{player1: 0, player2: 0, draw: 0}
+func (g *Game) resultsBoardInit() {
+	g.resultsBoard = map[string]int{g.player1: 0, g.player2: 0, g.draw: 0}
 }
 
-func addWin() {
-	resultsBoard[currentPlayerSymbol] = resultsBoard[currentPlayerSymbol] + 1
+func (g *Game) addWin() {
+	g.resultsBoard[g.currentPlayerSymbol] = g.resultsBoard[g.currentPlayerSymbol] + 1
 }
 
-func addDraw() {
-	resultsBoard[draw] = resultsBoard[draw] + 1
+func (g *Game) addDraw() {
+	g.resultsBoard[g.draw] = g.resultsBoard[g.draw] + 1
 }
 
-func displayResults() {
+func (g *Game) displayResults() {
 	fmt.Printf("Таблиця результатів: \n Перемоги player %s: %d \n "+
 		"Перемоги player %s: %d \n"+
-		" %s: %d", player1, resultsBoard[player1], player2, resultsBoard[player2], draw, resultsBoard[draw])
+		" %s: %d", g.player1, g.resultsBoard[g.player1], g.player2, g.resultsBoard[g.player2], g.draw, g.resultsBoard[g.draw])
 }
